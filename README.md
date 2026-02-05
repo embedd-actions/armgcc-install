@@ -1,6 +1,6 @@
-# xpack-armgcc-install
+# armgcc-install
 
-A dedicated GitHub Action for installing and caching the xpack ARM GCC cross-compiler toolchain. It helps you quickly and automatically configure ARM development environment in your CI/CD pipeline.
+A dedicated GitHub Action for installing and caching the ARM GCC cross-compiler toolchain. It helps you quickly and automatically configure ARM development environment in your CI/CD pipeline.
 
 ## Background
 
@@ -14,14 +14,14 @@ Add the following configuration to your workflow file (e.g., `.github/workflows/
 
 ```yaml
 steps:
-  - uses: embedd-actions/xpack-armgcc-install@v1
+  - uses: embedd-actions/armgcc-install@v1
     with:
-      version: '12.3.1-1.2'
+      version: '13.3.rel1'
 ```
 
 ### Available Versions
 
-For available versions, please refer to [Xpack ARM GNU Toolchain Downloads](https://github.com/xpack-dev-tools/arm-none-eabi-gcc-xpack/releases)
+For available versions, please refer to [ARM GNU Toolchain Downloads](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)
 
 ### Available Targets
 
@@ -47,9 +47,9 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Install ARM GCC
-      uses: embedd-actions/xpack-armgcc-install@v1
+      uses: embedd-actions/armgcc-install@v1
       with:
-        version: '12.3.1-1.2'
+        version: '13.3.rel1'
 
     - name: Build Project
       run: arm-none-eabi-gcc --version
