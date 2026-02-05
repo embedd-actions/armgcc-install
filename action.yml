@@ -1,0 +1,80 @@
+name: 'Install ARM GCC'
+description: 'Install and cache the ARM GCC toolchain, for example, arm-none-eabi-gcc.'
+branding:
+  icon: 'cpu'
+  color: 'blue'
+
+inputs:
+  version:
+    description: 'ARM GCC Version'
+    required: false
+    default: '12.3.1-1.2'
+  target:
+    description: 'ARM GCC Target'
+    required: false
+    default: 'arm-none-eabi'
+
+# target:
+#   arm-none-eabi            
+#   arm-none-linux-gnueabihf 
+#   aarch64-none-elf         
+#   aarch64-none-linux-gnu   
+
+runs:
+  using: "composite"
+  steps:
+    - name: Configure ARM GCC Download URL
+      shell: bash
+      run: |
+        if [ "${{ runner.os }}" == "Windows" ] && [ "${{ runner.arch }}" == "X86" ]; then
+          host=mingw-w64-x86_64; ext=zip
+        elif [ "${{ runner.os }}" == "Windows" ] && [ "${{ runner.arch }}" == "X64" ]; then
+          host=mingw-w64-x86_64; ext=zip
+        elif [ "${{ runner.os }}" == "Linux" ] && [ "${{ runner.arch }}" == "X64" ]; then
+          host=x86_64; ext=tar.gz
+        elif [ "${{ runner.os }}" == "Linux" ] && [ "${{ runner.arch }}" == "ARM64" ]; then
+          host=aarch64; ext=tar.gz
+        elif [ "${{ runner.os }}" == "macOS" ] && [ "${{ runner.arch }}" == "X64" ]; then
+          host=darwin-x86_64; ext=tar.gz
+        elif [ "${{ runner.os }}" == "macOS" ] && [ "${{ runner.arch }}" == "ARM64" ]; then
+          host=darwin-arm64; ext=tar.gz
+        fi
+        url_pre='https://developer.arm.com/-/media/Files/downloads/gnu'
+        echo "GCC_URL=${url_pre}/${{ inputs.version }}/binrel/arm-gnu-toolchain-${{ inputs.version }}-${host}-${{ inputs.target }}.${ext}" >> $GITHUB_ENV
+
+    - name: Set GCC_HOME GCC_PATH PATH
+      shell: bash
+      run: |
+        raw_path="${{ runner.workspace }}"
+        norm_path=$(echo "$raw_path" | tr '\\' '/')
+        path_pre=$(dirname "$norm_path")
+        gcc_home="${path_pre}/gcc-arm-none-eabi-${{ inputs.version }}"
+        gcc_path="${gcc_home}/bin"
+        echo "GCC_HOME=${gcc_home}" >> $GITHUB_ENV
+        echo "GCC_PATH=${gcc_path}" >> $GITHUB_ENV
+        echo "${gcc_path}" >> $GITHUB_PATH
+
+
+    - name: Check GCC existing 
+      shell: bash
+      id: check_gcc
+      run: |
+        if [ -d "$GCC_HOME" ] && [ "$(ls -A "$GCC_HOME")" ]; then
+          echo "found=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "found=false" >> "$GITHUB_OUTPUT"
+        fi
+
+      
+    - name: Download and Extract ARM GCC Toolchain
+      if: steps.check_gcc.outputs.found == 'false'
+      shell: bash
+      run: |
+        mkdir -p ${{ env.GCC_HOME }}
+        curl -L -o gcc_zip ${{ env.GCC_URL }}
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          7z x gcc_zip -o"${{ env.GCC_HOME }}" -y
+        else
+          tar -xf gcc_zip -C "${{ env.GCC_HOME }}" --strip-components=1
+        fi
+        ls -lh ${{ env.GCC_HOME }}
